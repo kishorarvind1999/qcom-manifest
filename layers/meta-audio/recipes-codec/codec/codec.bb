@@ -7,6 +7,15 @@ SRC_URI = " \
     file://codec.c \
     file://input.pcm \
     file://49.wav \
+    file://50.wav \
+    file://51.wav \
+    file://52.wav \
+    file://53.wav \
+    file://54.wav \
+    file://60.wav \
+    file://65.wav \
+    file://66.wav \
+    file://69.wav \
 "
 
 S = "${WORKDIR}"
@@ -24,6 +33,15 @@ do_install() {
          install -d ${D}${datadir}/${PN}
          install -m 0644 ${WORKDIR}/input.pcm ${D}${datadir}/${PN}/
          install -m 0644 ${WORKDIR}/49.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/50.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/51.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/52.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/53.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/54.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/60.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/65.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/66.wav ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/69.wav ${D}${datadir}/${PN}/
 }
 
 

@@ -12,15 +12,15 @@
 #include <sys/syscall.h>
 
 #define SAMPLE_RATE 48000
-#define FRAME_DURATION_MS 10
 #define FRAME_SIZE SAMPLE_RATE * FRAME_DURATION_MS/1000 
 #define BITRATE 64000 
 #define MAX_PACKET_SIZE 1000
 #define APPLICATION OPUS_APPLICATION_AUDIO
 
-struct timespec start, end;
-double total_encode_us, total_decode_us, avg_ms_e, avg_ms_d;
+struct timespec start, end, fn_start, fn_end;
+double total_encode_us, total_decode_us, fn_time_ms;
 int encoded_size, decoded_size, frame_count = 0;
+double FRAME_DURATION_MS = 10;
 
 int test_opus_codec(FILE **in_files, FILE **out_files, int n_channels) {
     printf("Testing Opus multistream codec with %d channels...\n", n_channels);
@@ -59,6 +59,7 @@ int test_opus_codec(FILE **in_files, FILE **out_files, int n_channels) {
             if (r > 0) all_eof = 0;
             // pad remaining samples with 0
             for (size_t i = r; i < FRAME_SIZE; i++) buf[ch][i] = 0;
+            frame_count++;
         }
         if (all_eof) break;
 
@@ -89,14 +90,13 @@ int test_opus_codec(FILE **in_files, FILE **out_files, int n_channels) {
             for (int ch = 0; ch < n_channels; ch++)
                 fwrite(&output[i * n_channels + ch], sizeof(opus_int16), 1, out_files[ch]);
         }
-
-        frame_count++;
     }
 
     printf("Frames processed: %d\n", frame_count);
     if (frame_count > 0) {
-        printf("Average encode time: %.3f µs/frame, decode time: %.3f µs/frame\nTotal Encoding time: %.3f ms, Total Decoding time: %.3f ms\n\n",
+        printf("Average encode time: %.3f µs/frame, decode time: %.3f µs/frame\nTotal Encoding time: %.3f ms, Total Decoding time: %.3f ms\n",
                total_encode_us / frame_count, total_decode_us / frame_count, total_encode_us / 1000, total_decode_us / 1000);
+        frame_count = 0; total_encode_us = 0; total_decode_us = 0; // Reset for next test
     }
 
     // Cleanup
@@ -111,9 +111,9 @@ int test_opus_codec(FILE **in_files, FILE **out_files, int n_channels) {
 
 
 int test_lc3_codec(FILE **in_files, FILE **out_files, int n_channels) {
-    printf("Testing LC3 codec...\n");
+    printf("Testing LC3 codec with %d channels...\n", n_channels);
 
-    const int frame_us = 10000;   // 10 ms
+    const int frame_us = FRAME_DURATION_MS * 1000; // 10 ms in µs
 
     unsigned enc_sz = lc3_encoder_size(frame_us, SAMPLE_RATE);
     unsigned dec_sz = lc3_decoder_size(frame_us, SAMPLE_RATE);
@@ -147,9 +147,6 @@ int test_lc3_codec(FILE **in_files, FILE **out_files, int n_channels) {
         if (!in[ch] || !out[ch] || !bit[ch]) { printf("LC3 buffer alloc failed\n"); return -1; }
     }
 
-    int frame_count = 0;
-    double total_encode_us = 0, total_decode_us = 0;
-
     while (1) {
         int read_ok = 0;
         for (int ch = 0; ch < n_channels; ch++) {
@@ -182,15 +179,15 @@ int test_lc3_codec(FILE **in_files, FILE **out_files, int n_channels) {
 
             // Write output
             fwrite(out[ch], sizeof(int16_t), frame_samples, out_files[ch]);
+            frame_count++;
         }
-
-        frame_count++;
     }
 
-    // printf("LC3 test completed! Frames: %d\n", frame_count);
+    printf("Frames processed: %d\n", frame_count);
     if (frame_count > 0) {
         printf("Average encode time: %.3f µs/frame, decode time: %.3f µs/frame\nTotal Encoding time: %.3f ms, Total Decoding time: %.3f ms\n",
                total_encode_us / frame_count, total_decode_us / frame_count, total_encode_us / 1000, total_decode_us / 1000);
+        frame_count = 0; total_encode_us = 0; total_decode_us = 0; // Reset for next test
     }
 
     // Free memory
@@ -222,14 +219,19 @@ void pin_to_core(int core_id) {
 
 int main(int argc, char *argv[]) {    
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s <core_number> <input_file_1> <input_file_2> ...\n", argv[0]);
+        fprintf(stderr, "Usage: %s <core_number> <frame_size_ms> <input_file_1> <input_file_2> ...\n", argv[0]);
         return 1;
     }
 
     int core = atoi(argv[1]);   
     pin_to_core(core);          // pin process to specified core
 
-    int n_channels = argc - 2;
+    FRAME_DURATION_MS = atof(argv[2]);
+    if (FRAME_DURATION_MS != 2.5 && FRAME_DURATION_MS != 5 && FRAME_DURATION_MS != 10 && FRAME_DURATION_MS != 20) {
+        fprintf(stderr, "Frame duration not supported\n");
+        return 1;
+    }
+    int n_channels = argc - 3;
 
     FILE **in_files   = malloc(n_channels * sizeof(FILE *));
     FILE **opus_files = malloc(n_channels * sizeof(FILE *));
@@ -241,7 +243,7 @@ int main(int argc, char *argv[]) {
 
     // open inputs
     for (int i = 0; i < n_channels; i++) {
-        in_files[i] = fopen(argv[2 + i], "rb");
+        in_files[i] = fopen(argv[3 + i], "rb");
         if (!in_files[i]) {
             perror(argv[2 + i]);
             return 1;
@@ -266,18 +268,28 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // run codecs
+    // run opus codec
+    clock_gettime(CLOCK_MONOTONIC, &fn_start);
     if (test_opus_codec(in_files, opus_files, n_channels) != 0) {
         fprintf(stderr, "Opus codec test failed\n");
     }
+    clock_gettime(CLOCK_MONOTONIC, &fn_end);
+    fn_time_ms = (fn_end.tv_sec - fn_start.tv_sec) * 1e3 + (fn_end.tv_nsec - fn_start.tv_nsec) / 1e6;
+    printf("Opus codec total time: %.3f ms\n\n", fn_time_ms);
 
     for (int i = 0; i < n_channels; i++) {
         rewind(in_files[i]); // reset input files for LC3 test
     }
+    fn_time_ms = 0;
 
+    // run lc3 codec
+    clock_gettime(CLOCK_MONOTONIC, &fn_start);
     if (test_lc3_codec(in_files, lc3_files, n_channels) != 0) {
         fprintf(stderr, "LC3 codec test failed\n");
     }
+    clock_gettime(CLOCK_MONOTONIC, &fn_end);
+    fn_time_ms = (fn_end.tv_sec - fn_start.tv_sec) * 1e3 + (fn_end.tv_nsec - fn_start.tv_nsec) / 1e6;
+    printf("LC3 codec total time: %.3f ms\n\n", fn_time_ms);
 
     // cleanup
     for (int i = 0; i < n_channels; i++) {

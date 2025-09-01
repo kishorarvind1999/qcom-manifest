@@ -5,7 +5,8 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = " \
     file://codec.c \
-    file://input.pcm \
+    file://sinewave1.pcm \
+    file://sinewave2.wav \
     file://49.wav \
     file://50.wav \
     file://51.wav \
@@ -31,7 +32,8 @@ do_install() {
          install -m 0755 codec ${D}${bindir}
 
          install -d ${D}${datadir}/${PN}
-         install -m 0644 ${WORKDIR}/input.pcm ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/sinewave1.pcm ${D}${datadir}/${PN}/
+         install -m 0644 ${WORKDIR}/sinewave2.wav ${D}${datadir}/${PN}/
          install -m 0644 ${WORKDIR}/49.wav ${D}${datadir}/${PN}/
          install -m 0644 ${WORKDIR}/50.wav ${D}${datadir}/${PN}/
          install -m 0644 ${WORKDIR}/51.wav ${D}${datadir}/${PN}/

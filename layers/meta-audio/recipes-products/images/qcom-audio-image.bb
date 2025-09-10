@@ -1,4 +1,4 @@
-require recipes-products/images/qcom-console-image.bb
+require recipes-products/images/qcom-multimedia-image.bb
 
 LICENSE = "BSD-3-Clause-Clear"
 

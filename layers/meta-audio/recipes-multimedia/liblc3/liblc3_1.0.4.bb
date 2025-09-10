@@ -11,3 +11,5 @@ SRCREV = "1a5938ebaca4f13fe79ce074f5dee079783aa29f"
 inherit pkgconfig meson
 
 BBCLASSEXTEND = "native nativesdk"
+
+EXTRA_OEMESON += "-Dtools=true"

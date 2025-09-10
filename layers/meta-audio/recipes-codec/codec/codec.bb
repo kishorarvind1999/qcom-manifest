@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = " \
     file://codec.c \
+    file://audio_loopback.c \
     file://sinewave1.pcm \
     file://sinewave2.wav \
     file://49.wav \
@@ -21,15 +22,17 @@ SRC_URI = " \
 
 S = "${WORKDIR}"
 
-DEPENDS += " libopus liblc3"
+DEPENDS += " libopus liblc3 alsa-lib"
 
 do_compile() {
          ${CC} ${CFLAGS} ${LDFLAGS} codec.c -o codec -lopus -llc3 -lm
+         ${CC} ${CFLAGS} ${LDFLAGS} audio_loopback.c -o audio_loopback -lasound -lm
 }
 
 do_install() {
          install -d ${D}${bindir}
          install -m 0755 codec ${D}${bindir}
+         install -m 0755 audio_loopback ${D}${bindir}
 
          install -d ${D}${datadir}/${PN}
          install -m 0644 ${WORKDIR}/sinewave1.pcm ${D}${datadir}/${PN}/
@@ -47,4 +50,4 @@ do_install() {
 }
 
 
-FILES:${PN} = "${bindir}/codec ${datadir}/${PN}/*"
+FILES:${PN} = "${bindir}/codec ${bindir}/audio_loopback ${datadir}/${PN}/*"

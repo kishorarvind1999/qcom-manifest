@@ -25,14 +25,15 @@ S = "${WORKDIR}"
 
 inherit pkgconfig
 
-DEPENDS += " libopus liblc3 alsa-lib qcom-pal qcom-pal-headers"
+DEPENDS += " libopus liblc3 alsa-lib qcom-pal qcom-pal-headers qcom-agm"
 
 do_compile() {
          ${CC} ${CFLAGS} ${LDFLAGS} codec.c -o codec -lopus -llc3 -lm
          ${CC} ${CFLAGS} ${LDFLAGS} audio_loopback.c -o audio_loopback -lasound -lm
          ${CC} ${CFLAGS} ${LDFLAGS} pal_audio_loopback.c -o pal_audio_loopback \
             $(pkg-config --cflags pal-headers) \
-            $(pkg-config --libs pal-headers)
+            $(pkg-config --libs pal-headers) \
+                -lpal -lagm -lm
 }
 
 do_install() {

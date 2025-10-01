@@ -1,0 +1,64 @@
+From bd63647acce19b3dcfb647c65d56ea04c5387140 Mon Sep 17 00:00:00 2001
+From: Sasi Kumar Maddineni <quic_sasikuma@quicinc.com>
+Date: Wed, 25 Sep 2024 12:50:13 +0530
+Subject: [PATCH] PENDING: policies for serial login
+
+added policies for serial login
+
+Upstream-Status: Pending
+
+Signed-off-by: Sasi Kumar Maddineni <quic_sasikuma@quicinc.com>
+---
+ policy/modules/system/locallogin.te |  6 +++++-
+ policy/modules/system/logging.if    | 19 +++++++++++++++++++
+ 2 files changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/policy/modules/system/locallogin.te b/policy/modules/system/locallogin.te
+index 4ba131d29..00d7e53d3 100644
+--- a/policy/modules/system/locallogin.te
++++ b/policy/modules/system/locallogin.te
+@@ -143,7 +143,11 @@ userdom_search_user_home_content(local_login_t)
+ userdom_use_unpriv_users_fds(local_login_t)
+ userdom_sigchld_all_users(local_login_t)
+ userdom_create_all_users_keys(local_login_t)
+-
++logging_rw_runtime_sockets(local_login_t)
++init_unix_stream_socket_connectto(local_login_t)
++busybox_nosuid_execute(local_login_t)
++systemd_stream_connect_userdb(local_login_t)
++init_stream_connect_script(local_login_t)
+ ifdef(`init_systemd',`
+ 	auth_manage_faillog(local_login_t)
+ 
+diff --git a/policy/modules/system/logging.if b/policy/modules/system/logging.if
+index 7487a7053..c8f80824d 100644
+--- a/policy/modules/system/logging.if
++++ b/policy/modules/system/logging.if
+@@ -79,6 +79,25 @@ interface(`logging_dontaudit_send_audit_msgs',`
+ 	dontaudit $1 self:netlink_audit_socket { nlmsg_relay r_netlink_socket_perms };
+ ')
+ 
++########################################
++## <summary>
++##      getattr, open, read, write, append syslog PID sockets.
++## </summary>
++## <param name="domain">
++##      <summary>
++##      Domain allowed access.
++##      </summary>
++## </param>
++#
++interface(`logging_rw_runtime_sockets',`
++        gen_require(`
++                type syslogd_runtime_t;
++        ')
++
++        rw_sock_files_pattern($1, syslogd_runtime_t, syslogd_runtime_t)
++        files_search_runtime($1)
++')
++
+ ########################################
+ ## <summary>
+ ##	Set login uid
+-- 
+2.25.1

@@ -1,0 +1,89 @@
+From 2648a4c2030b6d453e30aca3bd0000f50c672c19 Mon Sep 17 00:00:00 2001
+From: Gargi Misra <quic_gmisra@quicinc.com>
+Date: Thu, 2 Jan 2025 14:57:56 +0530
+Subject: [PATCH] PENDING-Add Docker related policies
+
+Upstream-Status: pending
+Signed-off-by: Gargi Misra <quic_gmisra@quicinc.com>
+---
+ policy/modules/services/docker.if | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/policy/modules/services/docker.if b/policy/modules/services/docker.if
+index 532fa4419..9f0175db7 100644
+--- a/policy/modules/services/docker.if
++++ b/policy/modules/services/docker.if
+@@ -140,6 +140,24 @@ interface(`docker_run_user_cli',`
+ 	docker_domtrans_user_cli($1)
+ ')
+ 
++########################################
++## <summary>
++##      Allow the specified domain to connect to
++##      dockerd with an unix stream socket.
++## </summary>
++## <param name="domain">
++##      <summary>
++##      Domain allowed access.
++##      </summary>
++## </param>
++#
++interface(`dockerd_connect_to_stream_socket',`
++    gen_require(`
++        type dockerd_t;
++    ')
++    allow $1 dockerd_t:unix_stream_socket connectto;
++')
++
+ ########################################
+ ## <summary>
+ ##	Role access for rootless docker.
+diff --git a/policy/modules/services/docker.te b/policy/modules/services/docker.te
+index a23c21c8f..ebcc22108 100644
+--- a/policy/modules/services/docker.te
++++ b/policy/modules/services/docker.te
+@@ -174,3 +174,15 @@ userdom_search_user_runtime(dockerc_user_t)
+ xdg_search_data_dirs(dockerc_user_t)
+ 
+ container_stream_connect_user_containers(dockerc_user_t)
++
++qcom_cam_server_mounton_tmp_dir(dockerd_t)
++init_search_tmp_dir(dockerd_t)
++
++pulseaudio_search_var_run(dockerd_t)
++pulseaudio_mounton_var_run(dockerd_t)
++
++qcom_weston_mounton_dev_dir(dockerd_t)
++dbus_connect_to_stream_socket(dockerd_t)
++
++qcom_connect_cmdline_to_property_vault(dockerd_t)
++initrc_runtime_sock_getattr(dockerd_t)
+diff --git a/policy/modules/services/container.fc b/policy/modules/services/container.fc
+index f98e68ba0..b46e264ae 100644
+--- a/policy/modules/services/container.fc
++++ b/policy/modules/services/container.fc
+@@ -36,6 +36,7 @@ HOME_DIR/\.docker(/.*)?		gen_context(system_u:object_r:container_conf_home_t,s0)
+ 
+ /etc/containers(/.*)?		gen_context(system_u:object_r:container_config_t,s0)
+ /etc/cni(/.*)?		gen_context(system_u:object_r:container_config_t,s0)
++/etc/cdi(/.*)?		gen_context(system_u:object_r:container_config_t,s0)
+ /etc/docker(/.*)?		gen_context(system_u:object_r:container_config_t,s0)
+ /etc/containerd(/.*)?		gen_context(system_u:object_r:container_config_t,s0)
+ 
+diff --git a/policy/modules/services/container.te b/policy/modules/services/container.te
+index 864fae707..b92f8caab 100644
+--- a/policy/modules/services/container.te
++++ b/policy/modules/services/container.te
+@@ -1109,6 +1109,9 @@ allow spc_t container_config_t:dir watch;
+ allow spc_t container_runtime_t:lnk_file manage_lnk_file_perms;
+ allow spc_t container_runtime_t:file watch;
+ 
++# for Qualcomm
++qcom_weston_dev_socket_connect(spc_t)
++
+ ifdef(`init_systemd',`
+ 	init_dbus_chat(spc_t)
+ 	init_run_bpf(spc_t)
+
+-- 
+2.34.1

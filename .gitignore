@@ -1,11 +1,2 @@
-# Ignore everything
-*
-
-# Whitelist these
-!.gitignore
-!setup-environment
-
-# Allow only the meta-audio layer
-!layers/
-!layers/meta-audio/
-!layers/meta-audio/**
+build/
+.repo/

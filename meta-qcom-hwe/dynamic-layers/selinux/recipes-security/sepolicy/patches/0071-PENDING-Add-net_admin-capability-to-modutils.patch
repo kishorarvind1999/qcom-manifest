@@ -1,0 +1,30 @@
+From 6e0b78f0357297c47336c0d7dcb4d72b33637b50 Mon Sep 17 00:00:00 2001
+From: Sasi Kumar Maddineni <quic_sasikuma@quicinc.com>
+Date: Tue, 24 Sep 2024 16:37:32 +0530
+Subject: [PATCH] PENDING: Add net_admin capability to modutils
+
+Added net_admin permission to modutils.
+
+Upstream-Status: Pending
+
+Signed-off-by: Sasi Kumar Maddineni <quic_sasikuma@quicinc.com>
+---
+ policy/modules/system/modutils.te | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/policy/modules/system/modutils.te b/policy/modules/system/modutils.te
+index 3f1f5ec13..94474c859 100644
+--- a/policy/modules/system/modutils.te
++++ b/policy/modules/system/modutils.te
+@@ -37,7 +37,7 @@ allow kmod_t self:capability { dac_override net_raw sys_nice sys_tty_config };
+ allow kmod_t self:process { execmem sigchld sigkill signal signull sigstop };
+ # for the radeon/amdgpu modules
+ dontaudit kmod_t self:capability sys_admin;
+-
++allow kmod_t self:capability net_admin;
+ allow kmod_t self:udp_socket create_socket_perms;
+ allow kmod_t self:rawip_socket create_socket_perms;
+ allow kmod_t self:key write;
+-- 
+2.25.1
+

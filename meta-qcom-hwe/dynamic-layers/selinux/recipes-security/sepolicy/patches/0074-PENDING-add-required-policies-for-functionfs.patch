@@ -1,0 +1,29 @@
+From ba0211a95c641dd99e97999e98e0af83d6eadbfc Mon Sep 17 00:00:00 2001
+From: Sasi Kumar Maddineni <quic_sasikuma@quicinc.com>
+Date: Wed, 25 Sep 2024 12:43:01 +0530
+Subject: [PATCH] PENDING: add required policies for functionfs
+
+added required policies for functionfs.
+
+Upstream-Status: Pending
+
+Signed-off-by: Sasi Kumar Maddineni <quic_sasikuma@quicinc.com>
+---
+ policy/modules/kernel/devices.te | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/policy/modules/kernel/devices.te b/policy/modules/kernel/devices.te
+index c06a77ade..a9ecd6486 100644
+--- a/policy/modules/kernel/devices.te
++++ b/policy/modules/kernel/devices.te
+@@ -358,6 +358,7 @@ optional_policy(`
+ type usbfs_t;
+ files_mountpoint(usbfs_t)
+ fs_pseudo_type(usbfs_t)
++fs_noxattr_type(usbfs_t)
+ genfscon usbfs / gen_context(system_u:object_r:usbfs_t,s0)
+ genfscon usbdevfs / gen_context(system_u:object_r:usbfs_t,s0)
+ genfscon functionfs / gen_context(system_u:object_r:usbfs_t,s0)
+-- 
+2.25.1
+

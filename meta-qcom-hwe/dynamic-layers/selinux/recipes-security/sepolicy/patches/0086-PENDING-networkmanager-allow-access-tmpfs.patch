@@ -1,0 +1,36 @@
+From 1c6c233db00b213bb7d4c65ff6de031a4881ac7b Mon Sep 17 00:00:00 2001
+From: Miaoqing Pan <quic_miaoqing@quicinc.com>
+Date: Fri, 3 Jan 2025 14:01:13 +0800
+Subject: [PATCH] PENDING: networkmanager: allow access tmpfs
+
+Upstream-Status: Pending
+
+Signed-off-by: Miaoqing Pan <quic_miaoqing@quicinc.com>
+---
+ policy/modules/services/networkmanager.te | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/policy/modules/services/networkmanager.te b/policy/modules/services/networkmanager.te
+index 5ae934638..466434e04 100644
+--- a/policy/modules/services/networkmanager.te
++++ b/policy/modules/services/networkmanager.te
+@@ -85,6 +85,7 @@ manage_dirs_pattern(NetworkManager_t, NetworkManager_var_lib_t, NetworkManager_v
+ manage_files_pattern(NetworkManager_t, NetworkManager_var_lib_t, NetworkManager_var_lib_t)
+ files_var_lib_filetrans(NetworkManager_t, NetworkManager_var_lib_t, dir)
+ allow NetworkManager_t NetworkManager_var_lib_t:file map;
++allow NetworkManager_t NetworkManager_var_lib_t:dir watch;
+ 
+ manage_dirs_pattern(NetworkManager_t, NetworkManager_runtime_t, NetworkManager_runtime_t)
+ manage_files_pattern(NetworkManager_t, NetworkManager_runtime_t, NetworkManager_runtime_t)
+@@ -191,7 +192,7 @@ userdom_read_user_certs(NetworkManager_t)
+ userdom_write_user_tmp_sockets(NetworkManager_t)
+ userdom_dontaudit_use_unpriv_user_fds(NetworkManager_t)
+ userdom_dontaudit_use_user_ttys(NetworkManager_t)
+-
++init_read_script_tmp_files(NetworkManager_t)
+ optional_policy(`
+ 	avahi_domtrans(NetworkManager_t)
+ 	avahi_kill(NetworkManager_t)
+-- 
+2.25.1
+

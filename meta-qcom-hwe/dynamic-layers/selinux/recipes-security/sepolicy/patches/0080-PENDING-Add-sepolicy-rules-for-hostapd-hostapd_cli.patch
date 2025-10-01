@@ -1,0 +1,63 @@
+From 7a78971300e208c024d5c9b0f93b9d0894cf0a47 Mon Sep 17 00:00:00 2001
+From: Sai Pavan Akhil Remella <quic_saipavan@quicinc.com>
+Date: Wed, 25 Sep 2024 15:22:48 +0530
+Subject: [PATCH] PENDING: Add sepolicy rules for hostapd/hostapd_cli
+
+Added rules for hostapd to access conf files under /etc/
+and to redirect the logs to /tmp. Added rules for
+hostapd_cli to access socket path.
+
+Upstream-Status: Pending
+
+Signed-off-by: Sai Pavan Akhil Remella <quic_saipavan@quicinc.com>
+---
+ policy/modules/services/hostapd.fc |  2 +-
+ policy/modules/services/hostapd.te | 23 +++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/policy/modules/services/hostapd.fc b/policy/modules/services/hostapd.fc
+index c0a9e3354..615496619 100644
+--- a/policy/modules/services/hostapd.fc
++++ b/policy/modules/services/hostapd.fc
+@@ -1,7 +1,7 @@
+ /usr/bin/hostapd                --      gen_context(system_u:object_r:hostapd_exec_t,s0)
+ 
+ /usr/sbin/hostapd               --      gen_context(system_u:object_r:hostapd_exec_t,s0)
+-
++/usr/sbin/hostapd_cli               --      gen_context(system_u:object_r:hostapd_cli_exec_t,s0)
+ /var/run/hostapd(/.*)?          gen_context(system_u:object_r:hostapd_runtime_t,s0)
+ 
+ /etc/hostapd(/.*)?          gen_context(system_u:object_r:hostapd_conf_t,s0)
+diff --git a/policy/modules/services/hostapd.te b/policy/modules/services/hostapd.te
+index 8bc2d5e50..884d9c7f8 100644
+--- a/policy/modules/services/hostapd.te
++++ b/policy/modules/services/hostapd.te
+@@ -54,3 +54,26 @@ auth_use_nsswitch(hostapd_t)
+ logging_send_syslog_msg(hostapd_t)
+ 
+ miscfiles_read_localization(hostapd_t)
++type hostapd_tmp_t;
++files_tmp_file(hostapd_tmp_t)
++type hostapd_cli_t;
++type hostapd_cli_exec_t;
++init_system_domain(hostapd_cli_t, hostapd_cli_exec_t)
++allow hostapd_t hostapd_cli_t:unix_dgram_socket sendto;
++allow hostapd_t tmp_t:dir create_dir_perms;
++init_read_script_tmp_files(hostapd_t)
++manage_sock_files_pattern(hostapd_t, hostapd_tmp_t, hostapd_tmp_t)
++files_read_etc_runtime_files(hostapd_t)
++manage_files_pattern(hostapd_t, hostapd_tmp_t, hostapd_tmp_t)
++rw_sock_files_pattern(hostapd_t, hostapd_tmp_t, hostapd_tmp_t)
++files_tmp_filetrans(hostapd_t, hostapd_tmp_t, {sock_file file})
++########################################
++#
++# hostapd_cli local policy
++#
++allow hostapd_cli_t self:unix_dgram_socket create_socket_perms;
++init_use_script_ptys(hostapd_cli_t)
++manage_sock_files_pattern(hostapd_cli_t, hostapd_tmp_t, hostapd_tmp_t)
++files_tmp_filetrans(hostapd_cli_t, hostapd_tmp_t, sock_file)
++rw_sock_files_pattern(hostapd_cli_t, hostapd_runtime_t, hostapd_runtime_t);
++allow hostapd_cli_t hostapd_t:unix_dgram_socket sendto;
+-- 
+2.25.1

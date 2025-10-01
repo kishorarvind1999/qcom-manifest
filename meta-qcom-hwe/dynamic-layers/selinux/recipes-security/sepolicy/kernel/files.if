@@ -1,0 +1,113 @@
+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+########################################
+## <summary>
+##       Add rules for property-vault interaction
+## </summary>
+## <desc>
+##    <p>
+##    Allow the specified domain to communicate with property-vault for search of properties.
+##    </p>
+## </desc>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`qcom_search_property_vault_tmp',`
+    gen_require(`
+        type tmp_t;
+    ')
+    allow $1 tmp_t:dir search_dir_perms;
+')
+########################################
+## <summary>
+##       Add rules for searching var_lib_t
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`search_var_lib',`
+    gen_require(`
+        type var_lib_t;
+    ')
+    allow $1 var_lib_t:dir search_dir_perms;
+')
+
+#######################################
+## <summary>
+##       Add rules for filetrans_pattern on var_lib_t
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+
+interface(`filetrans_var_lib',`
+    gen_require(`
+        type var_lib_t;
+    ')
+    filetrans_pattern($1, var_lib_t, $2, $3, $4)
+')
+
+#######################################
+## <summary>
+##       Allow domain to read etc runtime files
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+
+interface(`files_read_etc_runtime',`
+    gen_require(`
+        type etc_runtime_t;
+    ')
+    allow $1 etc_runtime_t:file { open read getattr };
+')
+
+#######################################
+## <summary>
+##       Allow domain to manage var runtime files and dir
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+
+interface(`files_manage_var_run',`
+    gen_require(`
+        type var_run_t;
+    ')
+    manage_dirs_pattern($1, var_run_t, var_run_t)
+    manage_files_pattern($1, var_run_t, var_run_t)
+')
+
+#######################################
+## <summary>
+##       Allow domain to load boot module
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+
+interface(`system_boot_module_load',`
+    gen_require(`
+        type boot_t;
+    ')
+    allow $1 boot_t:system module_load ;
+')

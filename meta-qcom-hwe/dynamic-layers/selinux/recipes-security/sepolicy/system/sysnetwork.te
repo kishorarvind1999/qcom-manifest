@@ -1,0 +1,7 @@
+#Copyright (c) 2024-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+#SPDX-License-Identifier: BSD-3-Clause-Clear
+
+busybox_nosuid_execute(ifconfig_t)
+busybox_nosuid_execute(dhcpc_t)
+
+allow dhcpc_t self:unix_stream_socket connectto;

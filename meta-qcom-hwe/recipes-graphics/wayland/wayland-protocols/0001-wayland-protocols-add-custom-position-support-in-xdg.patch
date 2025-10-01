@@ -1,0 +1,49 @@
+#This patch file is from Qualcomm Innovation Center, Inc. and is provided under the following license:
+#
+#Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
+#SPDX-License-Identifier: BSD-3-Clause-Clear
+From c61a508f0a6df2f54e9fc148289fe72ba52e5712 Mon Sep 17 00:00:00 2001
+From: Yaswanth Kowtha <quic_ykowtha@quicinc.com>
+Date: Wed, 12 Mar 2025 12:31:05 +0530
+Subject: [PATCH] Fix indexing of set-position in xdg
+
+This ensures the order of other requests is not changed.
+
+Change-Id: Id95a90e405f4785d1ea4f387823b85560b1d86a0
+Upstream-Status: Inappropriate [Downstream]
+Signed-off-by: Kai Xing <kxing@codeaurora.org>
+Signed-off-by: Yaswanth Kowtha <quic_ykowtha@quicinc.com>
+
+Upstream-Status: Inappropriate [Downstream]
+---
+ stable/xdg-shell/xdg-shell.xml | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/stable/xdg-shell/xdg-shell.xml b/stable/xdg-shell/xdg-shell.xml
+index dca033e..6fe1d3f 100644
+--- a/stable/xdg-shell/xdg-shell.xml
++++ b/stable/xdg-shell/xdg-shell.xml
+@@ -1098,6 +1098,20 @@
+       </description>
+     </request>
+ 
++    <request name="set_position">
++      <description summary="start with a custom window position">
++       Tell the weston server to place the client at specified position
++
++       There is no user action required to move surface.
++
++       The server may ignore move requests depending on the state
++       of the surface (e.g. fullscreen or maximized).
++      </description>
++
++      <arg name="x" type="uint" summary="new x co-ordinate of surface"/>
++      <arg name="y" type="uint" summary="new y co-ordinate of surface"/>
++    </request>
++
+     <event name="configure">
+       <description summary="suggest a surface change">
+ 	This configure event asks the client to resize its toplevel surface or
+-- 
+2.34.1
+

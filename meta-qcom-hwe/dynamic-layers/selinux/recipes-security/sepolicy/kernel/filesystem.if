@@ -1,0 +1,57 @@
+# Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#######################################
+## <summary>
+##	Create, read, write, and unlink symbolic links
+##	in configfs filesystem.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`fs_manage_configfs_lnk_files',`
+	gen_require(`
+		type configfs_t;
+	')
+
+	manage_lnk_files_pattern($1, configfs_t, configfs_t)
+')
+
+########################################
+## <summary>
+##      Map tmpfs files.
+## </summary>
+## <param name="domain">
+##      <summary>
+##      Domain allowed access.
+##      </summary>
+## </param>
+#
+interface(`fs_map_tmpfs_file',`
+        gen_require(`
+                type tmpfs_t;
+        ')
+
+        allow $1 tmpfs_t:file map;
+')
+
+########################################
+## <summary>
+##	Allow permissions for function_fs unmounting
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to unmount f_fs.
+##	</summary>
+## </param>
+#
+interface(`fs_unmount_usbfs',`
+	gen_require(`
+		type usbfs_t;
+	')
+
+	allow $1 usbfs_t:filesystem { unmount };
+')

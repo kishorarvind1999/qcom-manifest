@@ -1,0 +1,13 @@
+[Unit]
+Description=cDSP RPC daemon
+
+[Service]
+User=fastrpc
+Group=fastrpc
+SupplementaryGroups=kmem
+Type=exec
+Restart=always
+ExecStart=/usr/bin/cdsprpcd
+
+[Install]
+WantedBy=multi-user.target

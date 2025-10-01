@@ -1,0 +1,48 @@
+#This patch file is from Qualcomm Innovation Center, Inc. and is provided under the following license:
+#
+#Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+#SPDX-License-Identifier: BSD-3-Clause-Clear
+commit 7862f76cad2c72934426d32780658385a75fe922
+Author: Rajavenu Kyatham <quic_rkyatham@quicinc.com>
+Date:   Thu Dec 12 11:28:04 2024 +0530
+
+    weston: add sdm option v1
+
+Upstream-Status: Inappropriate [Downstream]
+Signed-off-by: Rajavenu Kyatham <quic_rkyatham@quicinc.com>
+
+diff --git a/meson.build b/meson.build
+index 2383273..2a6cf91 100644
+--- a/meson.build
++++ b/meson.build
+@@ -143,6 +143,7 @@ dep_libdl = cc.find_library('dl')
+ dep_libdrm = dependency('libdrm', version: '>= 2.4.108')
+ dep_libdrm_headers = dep_libdrm.partial_dependency(compile_args: true)
+ dep_threads = dependency('threads')
++dep_gbm = dependency('gbm')
+
+ dep_lcms2 = dependency('lcms2', version: '>= 2.9', required: false)
+
+diff --git a/meson_options.txt b/meson_options.txt
+index ac355f1..8a00560 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -2,6 +2,18 @@
+ #  --with-cairo=[image|gl|glesv2] Which Cairo renderer to use for the clients
+ # It is hardcoded to cairo-image for now.
+
++option(
++       'backend-sdm',
++       type: 'boolean',
++       value: true,
++       description: 'Weston backend with MSM SDM compositor'
++)
++option(
++       'disable-power-key',
++       type: 'boolean',
++       value: false,
++       description: 'Weston backend: disable power key handling'
++)
+ option(
+	'backend-drm',
+	type: 'boolean',

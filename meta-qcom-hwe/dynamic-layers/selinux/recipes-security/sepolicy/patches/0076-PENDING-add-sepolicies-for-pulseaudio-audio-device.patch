@@ -1,0 +1,90 @@
+From 8c3a2281c499c3b776d4fa6a45559d986b2a793f Mon Sep 17 00:00:00 2001
+From: Sairamreddy Bojja <quic_sbojja@quicinc.com>
+Date: Wed, 25 Sep 2024 12:56:42 +0530
+Subject: [PATCH] PENDING: add sepolicies for pulseaudio audio device
+
+Add sepolicy rules for device node and give prmission
+to pulseaudio
+dev/dma_heap/system
+
+Upstream-Status: Pending
+
+Signed-off-by: Sairamreddy Bojja <quic_sbojja@quicinc.com>
+Change-Id: Idb27c476872663288ab58fce2f6a6c2ac6989efb
+---
+ policy/modules/apps/pulseaudio.te |  2 +-
+ policy/modules/kernel/devices.fc  |  1 +
+ policy/modules/kernel/devices.if  | 18 ++++++++++++++++++
+ policy/modules/kernel/devices.te  |  3 +++
+ 4 files changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/policy/modules/apps/pulseaudio.te b/policy/modules/apps/pulseaudio.te
+index 531506c27..1bd1967f1 100644
+--- a/policy/modules/apps/pulseaudio.te
++++ b/policy/modules/apps/pulseaudio.te
+@@ -151,7 +151,7 @@ userdom_manage_user_tmp_dirs(pulseaudio_t)
+ userdom_manage_user_tmp_files(pulseaudio_t)
+ userdom_manage_user_tmp_sockets(pulseaudio_t)
+ userdom_write_all_user_runtime_named_sockets(pulseaudio_t)
+-
++dev_read_system_dmabuf(pulseaudio_t)
+ tunable_policy(`pulseaudio_execmem',`
+ 	allow pulseaudio_t self:process execmem;
+ ')
+diff --git a/policy/modules/kernel/devices.fc b/policy/modules/kernel/devices.fc
+index fb3010308..2645ab3af 100644
+--- a/policy/modules/kernel/devices.fc
++++ b/policy/modules/kernel/devices.fc
+@@ -23,6 +23,7 @@
+ /dev/crash		-c	gen_context(system_u:object_r:crash_device_t,mls_systemhigh)
+ /dev/dahdi/.*		-c	gen_context(system_u:object_r:sound_device_t,s0)
+ /dev/dax[0-9]\.[0-9]	-c	gen_context(system_u:object_r:dax_device_t,mls_systemhigh)
++/dev/dma_heap/system	-c	gen_context(system_u:object_r:system_dmabuf_device_t,s0)
+ /dev/dmfm		-c	gen_context(system_u:object_r:sound_device_t,s0)
+ /dev/dmmidi.*		-c	gen_context(system_u:object_r:sound_device_t,s0)
+ /dev/drm_dp_aux[0-9]*	-c	gen_context(system_u:object_r:xserver_misc_device_t,s0)
+diff --git a/policy/modules/kernel/devices.if b/policy/modules/kernel/devices.if
+index 4c44efe6f..c263acbda 100644
+--- a/policy/modules/kernel/devices.if
++++ b/policy/modules/kernel/devices.if
+@@ -71,6 +71,24 @@ interface(`dev_node',`
+ 	typeattribute $1 device_node;
+ ')
+ 
++########################################
++## <summary>
++##      Read the system device.
++## </summary>
++## <param name="domain">
++##      <summary>
++##      Domain allowed access.
++##      </summary>
++## </param>
++#
++interface(`dev_read_system_dmabuf',`
++	gen_require(`
++		type device_t, system_dmabuf_device_t;
++	')
++
++	read_chr_files_pattern($1, device_t, system_dmabuf_device_t)
++')
++
+ ########################################
+ ## <summary>
+ ##	Associate the specified file type with device filesystem.
+diff --git a/policy/modules/kernel/devices.te b/policy/modules/kernel/devices.te
+index a9ecd6486..75b551b4a 100644
+--- a/policy/modules/kernel/devices.te
++++ b/policy/modules/kernel/devices.te
+@@ -418,6 +418,9 @@ dev_node(xen_device_t)
+ type xserver_misc_device_t;
+ dev_node(xserver_misc_device_t)
+ 
++type system_dmabuf_device_t;
++dev_node(system_dmabuf_device_t)
++
+ #
+ # zero_device_t is the type of /dev/zero.
+ #
+-- 
+2.25.1

@@ -7,6 +7,7 @@ SRC_URI = " \
     file://codec.c \
     file://audio_loopback.c \
     file://pal_audio_loopback.c \
+    file://pal_test.c \
     file://sinewave1.pcm \
     file://sinewave2.wav \
     file://49.wav \
@@ -34,6 +35,10 @@ do_compile() {
             $(pkg-config --cflags pal-headers) \
             $(pkg-config --libs pal-headers) \
                 -lpal -lagm -lm
+        ${CC} ${CFLAGS} ${LDFLAGS} pal_test.c -o pal_test \
+            $(pkg-config --cflags pal-headers) \
+            $(pkg-config --libs pal-headers) \
+                -lpal -lagm -lm
 }
 
 do_install() {
@@ -41,6 +46,7 @@ do_install() {
          install -m 0755 codec ${D}${bindir}
          install -m 0755 audio_loopback ${D}${bindir}
          install -m 0755 pal_audio_loopback ${D}${bindir}
+         install -m 0755 pal_test ${D}${bindir}
 
          install -d ${D}${datadir}/${PN}
          install -m 0644 ${WORKDIR}/sinewave1.pcm ${D}${datadir}/${PN}/
@@ -58,4 +64,4 @@ do_install() {
 }
 
 
-FILES:${PN} = "${bindir}/codec ${bindir}/audio_loopback ${bindir}/pal_audio_loopback ${datadir}/${PN}/*"
+FILES:${PN} = "${bindir}/codec ${bindir}/audio_loopback ${bindir}/pal_audio_loopback ${bindir}/pal_test ${datadir}/${PN}/*"

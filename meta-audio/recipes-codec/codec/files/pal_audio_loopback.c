@@ -8,12 +8,9 @@
 
 #define FRAMES 1024
 #define SAMPLE_RATE 48000
-#define CHANNELS 1
+#define CHANNELS 2
 #define BIT_WIDTH 16
 #define FORMAT PAL_AUDIO_FMT_PCM_S16_LE
-
-#define PLAY_FILENAME  "/usr/share/codec/69.wav"
-#define CAPTURE_OUT    "/tmp/pal_capture_output.pcm"
 
 pal_stream_handle_t *pb_stream = NULL;
 pal_stream_handle_t *cp_stream = NULL;
@@ -21,58 +18,69 @@ pal_stream_handle_t *cp_stream = NULL;
 int main() {
     pal_init();
 
-    FILE* infile = fopen("/usr/share/codec/69.wav", "rb");
+    FILE* infile = fopen("/usr/share/codec/sinewave1.pcm", "rb");
     if (!infile) {
         perror("failed to open input file");
         pal_deinit();
         return -1;
     }
     else {
-        printf("Opened input file %s for reading\n", "/usr/share/codec/69.wav");
+        printf("Opened input file %s for reading\n", "/usr/share/codec/sinewave1.pcm");
     }
 
     struct pal_stream_attributes stream_attr;
     memset(&stream_attr, 0, sizeof(stream_attr));
-    stream_attr.type = PAL_STREAM_LOOPBACK;
+    stream_attr.type = PAL_STREAM_DEEP_BUFFER;
     stream_attr.direction = PAL_AUDIO_OUTPUT;
-    stream_attr.in_media_config.sample_rate = SAMPLE_RATE;
-    stream_attr.in_media_config.bit_width = BIT_WIDTH;
-    stream_attr.in_media_config.aud_fmt_id = FORMAT;
     stream_attr.out_media_config.sample_rate = SAMPLE_RATE;
     stream_attr.out_media_config.bit_width = BIT_WIDTH;
     stream_attr.out_media_config.aud_fmt_id = FORMAT;   
+    stream_attr.out_media_config.ch_info.channels = CHANNELS;
+    stream_attr.out_media_config.ch_info.ch_map[0] = PAL_CHMAP_CHANNEL_FL;
+    stream_attr.out_media_config.ch_info.ch_map[1] = PAL_CHMAP_CHANNEL_FR;
 
     struct pal_device device;
     memset(&device, 0, sizeof(device));
-    device.id = PAL_DEVICE_IN_FM_TUNER;
+    device.id = PAL_DEVICE_OUT_SPEAKER;
     device.config.sample_rate = SAMPLE_RATE;
     device.config.bit_width = BIT_WIDTH;
-    device.config.aud_fmt_id = PAL_AUDIO_FMT_PCM_S16_LE;
+    device.config.aud_fmt_id = FORMAT;
     device.config.ch_info.channels = CHANNELS;
+    device.config.ch_info.ch_map[0] = PAL_CHMAP_CHANNEL_FL;
+    device.config.ch_info.ch_map[1] = PAL_CHMAP_CHANNEL_FR;
 
-    printf("PAL Device ID: %d\n", device.id);
+    printf("Opening PAL stream with device ID: %d\n", device.id);
 
     // Open playback
     int ret = pal_stream_open(&stream_attr, 1, &device, 0, NULL, NULL, 0, &pb_stream);
     if (ret) {
         fprintf(stderr, "pal_stream_open failed: %d\n", ret);
         pal_deinit();
+        fclose(infile);
         return -1;
     }
-
     printf("Playback stream opened successfully\n");
+
+    ret = pal_stream_start(pb_stream);
+    if (ret) {
+        fprintf(stderr, "pal_stream_open failed: %d\n", ret);
+        pal_deinit();
+        fclose(infile);
+        return -1;
+    }
+    printf("Playback stream started successfully\n");
 
     size_t size = FRAMES * CHANNELS * (BIT_WIDTH / 8);
     char *buffer = malloc(size);
 
     struct pal_buffer pal_buf;
     memset(&pal_buf, 0, sizeof(pal_buf));
-    pal_buf.buffer = buffer;
     pal_buf.size = size;
 
     printf("Playing %s\n", "/usr/share/codec/69.wav");
 
     while (fread(buffer, 1, size, infile) > 0) {
+        pal_buf.buffer = buffer;
         ssize_t written = pal_stream_write(pb_stream, &pal_buf);
         if (written < 0) {
             fprintf(stderr, "pal_stream_write error %zd\n", written);
@@ -85,6 +93,7 @@ int main() {
     free(buffer);
     fclose(infile);
 
+    pal_stream_stop(pb_stream);
     pal_stream_close(pb_stream);
     pal_deinit();
 

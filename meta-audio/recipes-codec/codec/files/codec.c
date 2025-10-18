@@ -23,7 +23,7 @@ int encoded_size, decoded_size, frame_count = 0;
 double FRAME_DURATION_MS = 10;
 
 int test_opus_codec(FILE **in_files, FILE **out_files, int n_channels) {
-    printf("Testing Opus multistream codec with %d channels...\n", n_channels);
+    printf("Starting Opus test...");
 
     int streams = n_channels;        // One stream per channel
     int coupled_streams = 0;         // No stereo coupling
@@ -111,7 +111,7 @@ int test_opus_codec(FILE **in_files, FILE **out_files, int n_channels) {
 
 
 int test_lc3_codec(FILE **in_files, FILE **out_files, int n_channels) {
-    printf("Testing LC3 codec with %d channels...\n", n_channels);
+    printf("Starting LC3 test...");
 
     const int frame_us = FRAME_DURATION_MS * 1000; // 10 ms in µs
 
@@ -212,7 +212,7 @@ void pin_to_core(int core_id) {
     if (sched_setaffinity(tid, sizeof(mask), &mask) != 0) {
         perror("sched_setaffinity failed");
     } else {
-        printf("Pinned to core %d\n\n", core_id);
+        printf("Pinned to core %d\n", core_id);
     }
 }
 
@@ -232,6 +232,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     int n_channels = argc - 3;
+
+    printf("Frame duration: %.1f ms, Channels: %d\n\n", FRAME_DURATION_MS, n_channels);
 
     FILE **in_files   = malloc(n_channels * sizeof(FILE *));
     FILE **opus_files = malloc(n_channels * sizeof(FILE *));
